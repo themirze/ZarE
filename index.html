@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0" />
+    <title>ZarTools - IP Analiz Aracı</title>
+    <meta
+      name="description"
+      content="IP adresi analiz ve port tarama aracı" />
+    <link
+      rel="stylesheet"
+      href="/style.css" />
+  </head>
+  <body>
+    <!-- Info Icon -->
+    <div
+      class="info-icon"
+      onclick="openInfoPopup()">
+      <span>ℹ️</span>
+    </div>
+
+    <div class="container">
+      <h2>IP Analiz Aracı</h2>
+
+      <div class="tab-container">
+        <div class="tab-buttons">
+          <button
+            class="tab-button active"
+            data-tab="single">
+            Tekli Analiz
+          </button>
+          <button
+            class="tab-button"
+            data-tab="bulk">
+            Toplu Analiz
+          </button>
+        </div>
+
+        <!-- Tekli Analiz Tab -->
+        <div
+          class="tab-content active"
+          id="single">
+          <div class="search-container">
+            <input
+              type="text"
+              id="ipInput"
+              placeholder="IP adresini girin..."
+              aria-label="IP adresi giriş alanı" />
+            <button
+              onclick="fetchIPData()"
+              aria-label="IP adresini sorgula">
+              <span>Analiz Et</span>
+            </button>
+          </div>
+          <div
+            id="output"
+            role="region"
+            aria-live="polite"></div>
+        </div>
+
+        <!-- Toplu Analiz Tab -->
+        <div
+          class="tab-content"
+          id="bulk">
+          <div class="bulk-container">
+            <div class="file-upload">
+              <input
+                type="file"
+                id="fileInput"
+                accept=".txt"
+                class="file-input" />
+              <label
+                for="fileInput"
+                class="file-label">
+                <span class="file-icon">📁</span>
+                <span class="file-text">TXT Dosyası Seçin veya Sürükleyin</span>
+              </label>
+            </div>
+            <div class="selected-file"></div>
+            <button
+              onclick="analyzeBulkIPs()"
+              id="bulkAnalyzeBtn"
+              disabled>
+              <span>Toplu Analiz Et</span>
+            </button>
+          </div>
+          <div id="bulkOutput">
+            <div class="bulk-stats"></div>
+            <div class="bulk-results"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Popup -->
+    <div
+      id="infoPopup"
+      class="popup">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h3>Ayarlar & Yardım</h3>
+          <button
+            class="close-popup"
+            onclick="closeInfoPopup()">
+            &times;
+          </button>
+        </div>
+        <div class="popup-body">
+          <div class="url-settings">
+            <h4>Shodan URL Oluşturucu</h4>
+            <p>Domain adını girin, Shodan'da arama yapmak için URL oluşturulacak:</p>
+            <div class="url-input-container">
+              <input
+                type="text"
+                id="shodanUrl"
+                placeholder="Domain girin (örn: example.com)"
+                onkeypress="if(event.key === 'Enter') generateShodanUrl()" />
+              <button onclick="generateShodanUrl()">Git</button>
+            </div>
+            <div
+              id="urlResult"
+              style="display: none; margin-top: 15px">
+              <p>Oluşturulan URL:</p>
+              <code
+                id="generatedUrl"
+                style="
+                  word-break: break-all;
+                  display: block;
+                  padding: 10px;
+                  background: #e9ecef;
+                  border-radius: 4px;
+                  margin-top: 5px;
+                "></code>
+            </div>
+          </div>
+
+          <div class="bookmarklet-section">
+            <h4>IP Toplama Aracı</h4>
+            <p>Shodan sonuçlarından IP'leri toplamak için bu aracı kullanın:</p>
+            <div class="bookmarklet-container">
+              <a
+                href="#"
+                class="bookmarklet-button"
+                onclick="addBookmarklet(); return false;">
+                IP Topla
+              </a>
+              <div
+                id="bookmarkletInstructions"
+                style="
+                  display: none;
+                  margin-top: 15px;
+                  text-align: left;
+                  background: #e9ecef;
+                  padding: 15px;
+                  border-radius: 8px;
+                ">
+                <p><strong>Bookmarklet'i eklemek için:</strong></p>
+                <ol>
+                  <li>Tarayıcınızın yer işaretleri çubuğunu gösterin (Ctrl/Cmd + Shift + B)</li>
+                  <li>'IP Topla' butonunu yer işaretleri çubuğuna sürükleyin</li>
+                </ol>
+                <p><strong>veya</strong></p>
+                <ol start="3">
+                  <li>'IP Topla' butonuna sağ tıklayıp 'Yer İşareti Olarak Kaydet'i seçin</li>
+                </ol>
+                <p><strong>Kullanmak için:</strong></p>
+                <ol>
+                  <li>Shodan arama sonuçları sayfasında yer işaretine tıklayın</li>
+                  <li>Sayfadaki tüm IP'ler otomatik olarak kopyalanacak ve indirilecektir</li>
+                </ol>
+              </div>
+              <p class="bookmarklet-info">⚡ Tarayıcınızın yer işaretleri çubuğuna ekleyin</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CVE Detay Popup -->
+    <div
+      id="cvePopup"
+      class="popup">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h3 id="cveTitle">CVE Detayları</h3>
+          <button
+            class="close-popup"
+            onclick="closePopup()">
+            &times;
+          </button>
+        </div>
+        <div class="popup-body">
+          <div id="cveDetails"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- IP Detay Popup -->
+    <div
+      id="ipDetailPopup"
+      class="popup">
+      <div class="popup-content">
+        <div class="popup-header">
+          <h3 id="ipDetailTitle">IP Detayları</h3>
+          <button
+            class="close-popup"
+            onclick="closeIpDetailPopup()">
+            &times;
+          </button>
+        </div>
+        <div class="popup-body">
+          <div id="ipDetails"></div>
+        </div>
+      </div>
+    </div>
+
+    <script src="/script.js"></script>
+  </body>
+</html>
